@@ -12,6 +12,3 @@ def events():
                 pygame.quit()
                 sys.exit()
 
-
-def draw_map():
-    pass
