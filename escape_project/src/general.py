@@ -11,4 +11,3 @@ def events():
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 sys.exit()
-
