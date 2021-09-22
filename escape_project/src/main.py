@@ -9,6 +9,8 @@ game_map = GameMap()
 st = Settings()
 screen = pygame.display.set_mode((st.width, st.height))
 
+game_map.generate_map()
+
 while True:
 
     gn.events()
