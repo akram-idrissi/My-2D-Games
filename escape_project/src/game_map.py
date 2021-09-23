@@ -1,5 +1,9 @@
+import time
+
+import pygame
 import random
 
+from games.escape_project.src.settings import Settings
 from images import Images
 from player import Player
 
@@ -9,7 +13,7 @@ class GameMap:
     def __init__(self):
 
         self.images = Images()
-
+        self.player = Player("")
         self.player_name = Player("Sean")
         self.friend1_name = Player("Karen")
         self.friend2_name = Player("Karen")
@@ -55,7 +59,7 @@ class GameMap:
 
         game_map = self.rooms()
         room_data = game_map[self.current_room]
-        room_name = room_data[0]
+        # room_name = room_data[0]
         self.room_height = room_data[1]
         self.room_width = room_data[2]
 
@@ -365,6 +369,15 @@ class GameMap:
         del self.scenery[21][-1]  # Delete last fence panel in Room 21
         del self.scenery[25][-1]  # Delete last fence panel in Room 25
 
+    def draw_player(self, y, screen):
+        if self.player.player_y == y:
+            image_to_draw = self.player.player_movements[self.player.player_direction][self.player.player_frame]
+            screen.blit(image_to_draw,
+                        (self.top_left_x + (self.player.player_x * 30) +
+                         (self.player.player_offset_x * 30),
+                         self.top_left_y + (self.player.player_y * 30) + (self.player.player_offset_y * 30)
+                         - image_to_draw.get_height()))
+
     def draw(self, screen):
         for y in range(self.room_height):
             for x in range(self.room_width):
@@ -372,3 +385,105 @@ class GameMap:
                     image_to_draw = self.objects[self.room_map[y][x]][0]
                     screen.blit(image_to_draw, (self.top_left_x + (x * 30),
                                                 self.top_left_y + (y * 30) - image_to_draw.get_height()))
+            self.draw_player(y, screen)
+
+    def player_movements(self):
+        st = Settings()
+
+        if st.game_over:
+            return
+
+        if self.player.player_frame > 0:
+            self.player.player_frame += 1
+            time.sleep(0.05)
+            if self.player.player_frame == 5:
+                self.player.player_frame = 0
+                self.player.player_offset_x = 0
+                self.player.player_offset_y = 0
+
+        # save player's current position
+        old_player_x = self.player.player_x
+        old_player_y = self.player.player_y
+
+        # move if key is pressed
+        if self.player.player_frame == 0:
+            if pygame.key.get_pressed()[pygame.K_RIGHT]:
+                from_player_x = self.player.player_x
+                from_player_y = self.player.player_y
+                self.player.player_x += 1
+                self.player.player_direction = "right"
+                self.player.player_frame = 1
+            elif pygame.key.get_pressed()[pygame.K_LEFT]:  # elif stops player making diagonal movements
+                from_player_x = self.player.player_x
+                from_player_y = self.player.player_y
+                self.player.player_x -= 1
+                self.player.player_direction = "left"
+                self.player.player_frame = 1
+            elif pygame.key.get_pressed()[pygame.K_UP]:
+                from_player_x = self.player.player_x
+                from_player_y = self.player.player_y
+                self.player.player_y -= 1
+                self.player.player_direction = "up"
+                self.player.player_frame = 1
+            elif pygame.key.get_pressed()[pygame.K_DOWN]:
+                from_player_x = self.player.player_x
+                from_player_y = self.player.player_y
+                self.player.player_y += 1
+                self.player.player_direction = "down"
+                self.player.player_frame = 1
+
+        if self.player.player_x == self.room_width:  # through door on RIGHT
+            # clock.unschedule(hazard_move)
+            self.current_room += 1
+            self.generate_map()
+            self.player.player_x = 0  # enter at left
+            self.player.player_y = int(self.room_height / 2)  # enter at door
+            self.player.player_frame = 0
+            # start_room()
+            return
+
+        if self.player.player_x == -1:  # through door on LEFT
+            # clock.unschedule(hazard_move)
+            self.current_room -= 1
+            self.generate_map()
+            self.player.player_x = self.room_width - 1  # enter at right
+            self.player.player_y = int(self.room_height / 2)  # enter at door
+            self.player.player_frame = 0
+            # start_room()
+            return
+
+        if self.player.player_y == self.room_height:  # through door at BOTTOM
+            # clock.unschedule(hazard_move)
+            self.current_room += self.map_width
+            self.generate_map()
+            self.player.player_y = 0  # enter at top
+            self.player.player_x = int(self.room_width / 2)  # enter at door
+            self.player.player_frame = 0
+            # start_room()
+            return
+
+        if self.player.player_y == -1:  # through door at TOP
+            # clock.unschedule(hazard_move)
+            self.current_room -= self.map_width
+            self.generate_map()
+            self.player.player_y = self.room_height - 1  # enter at bottom
+            self.player.player_x = int(self.room_width / 2)  # enter at door
+            self.player.player_frame = 0
+            # start_room()
+            return
+
+        # If the player is standing somewhere they shouldn't, move them back.
+        if self.room_map[self.player.player_y][self.player.player_x] not in self.items_player_may_stand_on:  # \
+            # or hazard_map[player_y][player_x] != 0:
+            self.player.player_x = old_player_x
+            self.player.player_y = old_player_y
+            self.player.player_frame = 0
+
+        if self.player.player_direction == "right" and self.player.player_frame > 0:
+            self.player.player_offset_x = -1 + (0.25 * self.player.player_frame)
+        if self.player.player_direction == "left" and self.player.player_frame > 0:
+            self.player.player_offset_x = 1 - (0.25 * self.player.player_frame)
+        if self.player.player_direction == "up" and self.player.player_frame > 0:
+            self.player.player_offset_y = 1 - (0.25 * self.player.player_frame)
+        if self.player.player_direction == "down" and self.player.player_frame > 0:
+            self.player.player_offset_y = -1 + (0.25 * self.player.player_frame)

@@ -8,3 +8,5 @@ class Settings:
 
         self.white = (255, 255, 255)
         self.black = (0, 0, 0)
+
+        self.game_over = False
