@@ -18,5 +18,4 @@ while True:
     game_map.generate_map()
     game_map.player_movements()
 
-    game_map.draw(screen)
     pygame.display.update()

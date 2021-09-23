@@ -369,24 +369,6 @@ class GameMap:
         del self.scenery[21][-1]  # Delete last fence panel in Room 21
         del self.scenery[25][-1]  # Delete last fence panel in Room 25
 
-    def draw_player(self, y, screen):
-        if self.player.player_y == y:
-            image_to_draw = self.player.player_movements[self.player.player_direction][self.player.player_frame]
-            screen.blit(image_to_draw,
-                        (self.top_left_x + (self.player.player_x * 30) +
-                         (self.player.player_offset_x * 30),
-                         self.top_left_y + (self.player.player_y * 30) + (self.player.player_offset_y * 30)
-                         - image_to_draw.get_height()))
-
-    def draw(self, screen):
-        for y in range(self.room_height):
-            for x in range(self.room_width):
-                if self.room_map[y][x] != 255:
-                    image_to_draw = self.objects[self.room_map[y][x]][0]
-                    screen.blit(image_to_draw, (self.top_left_x + (x * 30),
-                                                self.top_left_y + (y * 30) - image_to_draw.get_height()))
-            self.draw_player(y, screen)
-
     def player_movements(self):
         st = Settings()
 
