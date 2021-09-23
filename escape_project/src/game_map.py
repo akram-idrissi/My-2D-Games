@@ -53,13 +53,13 @@ class GameMap:
         else:
             return 0
 
-    def generate_map(self):
+    def generate_map(self, st):
         side_edge = 0
         bottom_edge = 0
 
         game_map = self.rooms()
         room_data = game_map[self.current_room]
-        # room_name = room_data[0]
+        room_name = room_data[0]
         self.room_height = room_data[1]
         self.room_width = room_data[2]
 
@@ -120,6 +120,13 @@ class GameMap:
                 image_width_in_tiles = int(image_width / self.tile_size)
                 for tile_number in range(1, image_width_in_tiles):
                     self.room_map[scenery_y][scenery_x + tile_number] = 255
+
+        center_y = int(st.height / 2)  # Center of game window
+        center_x = int(st.width / 2)
+        room_pixel_width = self.room_width * self.tile_size  # Size of room in pixels
+        room_pixel_height = self.room_height * self.tile_size
+        top_left_x = center_x - 0.5 * room_pixel_width
+        top_left_y = (center_y - 0.5 * room_pixel_height) + 110
 
     def rooms(self):
 
@@ -369,25 +376,7 @@ class GameMap:
         del self.scenery[21][-1]  # Delete last fence panel in Room 21
         del self.scenery[25][-1]  # Delete last fence panel in Room 25
 
-    def draw_player(self, y, screen):
-        if self.player.player_y == y:
-            image_to_draw = self.player.player_movements[self.player.player_direction][self.player.player_frame]
-            screen.blit(image_to_draw,
-                        (self.top_left_x + (self.player.player_x * 30) +
-                         (self.player.player_offset_x * 30),
-                         self.top_left_y + (self.player.player_y * 30) + (self.player.player_offset_y * 30)
-                         - image_to_draw.get_height()))
-
-    def draw(self, screen):
-        for y in range(self.room_height):
-            for x in range(self.room_width):
-                if self.room_map[y][x] != 255:
-                    image_to_draw = self.objects[self.room_map[y][x]][0]
-                    screen.blit(image_to_draw, (self.top_left_x + (x * 30),
-                                                self.top_left_y + (y * 30) - image_to_draw.get_height()))
-            self.draw_player(y, screen)
-
-    def player_movements(self):
+    def player_movements(self, st):
         st = Settings()
 
         if st.game_over:
@@ -435,7 +424,7 @@ class GameMap:
         if self.player.player_x == self.room_width:  # through door on RIGHT
             # clock.unschedule(hazard_move)
             self.current_room += 1
-            self.generate_map()
+            self.generate_map(st)
             self.player.player_x = 0  # enter at left
             self.player.player_y = int(self.room_height / 2)  # enter at door
             self.player.player_frame = 0
@@ -445,7 +434,7 @@ class GameMap:
         if self.player.player_x == -1:  # through door on LEFT
             # clock.unschedule(hazard_move)
             self.current_room -= 1
-            self.generate_map()
+            self.generate_map(st)
             self.player.player_x = self.room_width - 1  # enter at right
             self.player.player_y = int(self.room_height / 2)  # enter at door
             self.player.player_frame = 0
@@ -455,7 +444,7 @@ class GameMap:
         if self.player.player_y == self.room_height:  # through door at BOTTOM
             # clock.unschedule(hazard_move)
             self.current_room += self.map_width
-            self.generate_map()
+            self.generate_map(st)
             self.player.player_y = 0  # enter at top
             self.player.player_x = int(self.room_width / 2)  # enter at door
             self.player.player_frame = 0
@@ -465,7 +454,7 @@ class GameMap:
         if self.player.player_y == -1:  # through door at TOP
             # clock.unschedule(hazard_move)
             self.current_room -= self.map_width
-            self.generate_map()
+            self.generate_map(st)
             self.player.player_y = self.room_height - 1  # enter at bottom
             self.player.player_x = int(self.room_width / 2)  # enter at door
             self.player.player_frame = 0
@@ -487,3 +476,106 @@ class GameMap:
             self.player.player_offset_y = 1 - (0.25 * self.player.player_frame)
         if self.player.player_direction == "down" and self.player.player_frame > 0:
             self.player.player_offset_y = -1 + (0.25 * self.player.player_frame)
+
+    # def start_room(self):
+    #     self.show_text("You are here: " + room_name, 0)
+
+    def draw_image(self, image, y, x, screen):
+        screen.blit(image,
+                    (self.top_left_x + (x * self.tile_size),
+                     self.top_left_y + (y * self.tile_size) - image.get_height())
+                    )
+
+    def draw_shadow(self, image, y, x, screen):
+        screen.blit(image,
+                    (self.top_left_x + (x * self.tile_size),
+                     self.top_left_y + (y * self.tile_size))
+                    )
+
+    def draw_player(self, screen):
+        player_image = self.player.player_movements[self.player.player_direction][self.player.player_frame]
+
+        self.draw_image(player_image, self.player.player_y + self.player.player_offset_y,
+                        self.player.player_x + self.player.player_offset_x, screen)
+        player_image_shadow = self.player.player_shadow[self.player.player_direction][self.player.player_frame]
+        self.draw_shadow(player_image_shadow, self.player.player_y + self.player.player_offset_y,
+                         self.player.player_x + self.player.player_offset_x, screen)
+
+    def draw(self, screen, st):
+        if st.game_over:
+            return
+
+        # Clear the game arena area.
+        # box = pygame.Rect((0, 150), (800, 600))
+        # pygame.draw.circle(box, st.red)
+        # box = pygame.Rect((0, 0), (800, self.top_left_y + (self.room_height - 1) * 30))
+        # screen.surface.set_clip(box)
+        floor_type = self.get_floor_type()
+
+        for y in range(self.room_height):  # Lay down floor tiles, then items on floor.
+            for x in range(self.room_width):
+                self.draw_image(self.objects[floor_type][0], y, x, screen)
+                # Next line enables shadows to fall on top of objects on floor
+                if self.room_map[y][x] in self.items_player_may_stand_on:
+                    self.draw_image(self.objects[self.room_map[y][x]][0], y, x, screen)
+
+        # Pressure pad in room 26 is added here, so props can go on top of it.
+        if self.current_room == 26:
+            self.draw_image(self.objects[39][0], 8, 2, screen)
+            image_on_pad = self.room_map[8][2]
+            if image_on_pad > 0:
+                self.draw_image(self.objects[image_on_pad][0], 8, 2, screen)
+
+        for y in range(self.room_height):
+            for x in range(self.room_width):
+                item_here = self.room_map[y][x]
+                # Player cannot walk on 255: it marks spaces used by wide objects.
+                if item_here not in self.items_player_may_stand_on + [255]:
+                    image = self.objects[item_here][0]
+
+                    if (self.current_room in self.outdoor_rooms
+                        and y == self.room_height - 1
+                        and self.room_map[y][x] == 1) or \
+                            (self.current_room not in self.outdoor_rooms
+                             and y == self.room_height - 1
+                             and self.room_map[y][x] == 1
+                             and 0 < x < self.room_width - 1):
+                        # Add transparent wall image in the front row.
+                        image = self.player.pillars[self.player.wall_transparency_frame]
+
+                    self.draw_image(image, y, x, screen)
+
+                    if self.objects[item_here][1] is not None:  # If object has a shadow
+                        shadow_image = self.objects[item_here][1]
+                        # if shadow might need horizontal tiling
+                        if shadow_image in [self.images.half_shadow,
+                                            self.images.full_shadow]:
+                            shadow_width = int(image.get_width() / self.tile_size)
+                            # Use shadow across width of object.
+                            for z in range(0, shadow_width):
+                                self.draw_shadow(shadow_image, y, x + z, screen)
+                        else:
+                            self.draw_shadow(shadow_image, y, x, screen)
+
+            if self.player.player_y == y:
+                self.draw_player(screen)
+
+    def adjust_wall_transparency(self):
+        if (self.player.player_y == self.room_height - 2
+                and self.room_map[self.room_height - 1][self.player.player_x] == 1
+                and self.player.wall_transparency_frame < 4):
+            self.player.wall_transparency_frame += 1  # Fade wall out.
+        if ((self.player.player_y < self.room_height - 2
+             or self.room_map[self.room_height - 1][self.player.player_x] != 1)
+                and self.player.wall_transparency_frame > 0):
+            self.player.wall_transparency_frame -= 1  # Fade wall in.
+
+    # def show_text(self, text_to_show, line_number, screen, st):
+    #     if st.game_over:
+    #         return
+    #
+    #     text_lines = [15, 50]
+    #     box = pygame.Rect((0, text_lines[line_number]), (800, 35))
+    #     screen.draw.filled_rect(box, st.black)
+    #     screen.draw.text(text_to_show,
+    #                      (20, text_lines[line_number]), color=st.green)

@@ -1,10 +1,5 @@
 import pygame
 import sys
-import time
-
-from game_map import GameMap
-from player import Player
-from settings import Settings
 
 
 def events():

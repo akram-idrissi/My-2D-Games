@@ -9,14 +9,15 @@ game_map = GameMap()
 st = Settings()
 screen = pygame.display.set_mode((st.width, st.height))
 
+game_map.generate_map(st)
 
 while True:
 
     gn.events()
     screen.fill(st.black)
 
-    game_map.generate_map()
-    game_map.player_movements()
+    game_map.player_movements(st)
+    game_map.adjust_wall_transparency()
+    game_map.draw(screen, st)
 
-    game_map.draw(screen)
     pygame.display.update()

@@ -10,6 +10,33 @@ class Player:
         self.x = 600
         self.y = 350
 
+        self.player_shadow = {
+            "left": [self.images.spacesuit_left_shadow, self.images.spacesuit_left_1_shadow,
+                     self.images.spacesuit_left_2_shadow, self.images.spacesuit_left_3_shadow,
+                     self.images.spacesuit_left_3_shadow
+                     ],
+            "right": [self.images.spacesuit_right_shadow, self.images.spacesuit_right_1_shadow,
+                      self.images.spacesuit_right_2_shadow,
+                      self.images.spacesuit_right_3_shadow, self.images.spacesuit_right_3_shadow
+                      ],
+            "up": [self.images.spacesuit_back_shadow, self.images.spacesuit_back_1_shadow,
+                   self.images.spacesuit_back_2_shadow, self.images.spacesuit_back_3_shadow,
+                   self.images.spacesuit_back_3_shadow
+                   ],
+            "down": [self.images.spacesuit_front_shadow, self.images.spacesuit_front_1_shadow,
+                     self.images.spacesuit_front_2_shadow, self.images.spacesuit_front_3_shadow,
+                     self.images.spacesuit_front_3_shadow
+                     ]
+        }
+
+        self.player_image_shadow = self.player_shadow["down"][0]
+
+        self.pillars = [
+            self.images.pillar, self.images.pillar_95, self.images.pillar_80,
+            self.images.pillar_60, self.images.pillar_50
+        ]
+        self.wall_transparency_frame = 0
+
         self.player_movements = {
             "left": [self.images.spacesuit_left, self.images.spacesuit_left_1,
                      self.images.spacesuit_left_2, self.images.spacesuit_left_3,
