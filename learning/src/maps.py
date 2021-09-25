@@ -1,5 +1,5 @@
 """
-* The map has 50 sub-maps
+* The mother map has 50 sub-maps
 * Each sub-map represents a room
 * The first 25 sub-maps are planet surface (space)
 * Every room has an exit
