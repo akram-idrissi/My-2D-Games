@@ -17,7 +17,7 @@ while True:
     screen.fill(st.black)
 
     game_map.player_movements(st)
-    game_map.adjust_wall_transparency()
+    # game_map.adjust_wall_transparency()
     game_map.draw(screen, st)
 
     pygame.display.update()

@@ -181,11 +181,12 @@ class Maps:
             return
         if self.PLAYER_NAME.player_frame > 0:
             self.PLAYER_NAME.player_frame += 1
-        time.sleep(0.05)
-        if self.PLAYER_NAME.player_frame == 5:
-            self.PLAYER_NAME.player_frame = 0
-            self.PLAYER_NAME.player_offset_x = 0
-            self.PLAYER_NAME.player_offset_y = 0
+            time.sleep(0.05)
+            if self.PLAYER_NAME.player_frame == 5:
+                self.PLAYER_NAME.player_frame = 0
+                self.PLAYER_NAME.player_offset_x = 0
+                self.PLAYER_NAME.player_offset_y = 0
+
         # save player's current position
         old_player_x = self.PLAYER_NAME.player_x
         old_player_y = self.PLAYER_NAME.player_y
@@ -199,26 +200,27 @@ class Maps:
                 self.PLAYER_NAME.player_direction = "right"
                 self.PLAYER_NAME.player_frame = 1
 
-        elif pygame.key.get_pressed()[pygame.K_LEFT]:  # elif stops player making diagonal movements
-            from_player_x = self.PLAYER_NAME.player_x
-            from_player_y = self.PLAYER_NAME.player_y
-            self.PLAYER_NAME.player_x -= 1
-            self.PLAYER_NAME.player_direction = "left"
-            self.PLAYER_NAME.player_frame = 1
+            elif pygame.key.get_pressed()[pygame.K_LEFT]:  # elif stops player making diagonal movements
+                from_player_x = self.PLAYER_NAME.player_x
+                from_player_y = self.PLAYER_NAME.player_y
+                self.PLAYER_NAME.player_x -= 1
+                self.PLAYER_NAME.player_direction = "left"
+                self.PLAYER_NAME.player_frame = 1
 
-        elif pygame.key.get_pressed()[pygame.K_UP]:
-            from_player_x = self.PLAYER_NAME.player_x
-            from_player_y = self.PLAYER_NAME.player_y
-            self.PLAYER_NAME.player_y -= 1
-            self.PLAYER_NAME.player_direction = "up"
-            self.PLAYER_NAME.player_frame = 1
+            elif pygame.key.get_pressed()[pygame.K_UP]:
+                from_player_x = self.PLAYER_NAME.player_x
+                from_player_y = self.PLAYER_NAME.player_y
+                self.PLAYER_NAME.player_y -= 1
+                self.PLAYER_NAME.player_direction = "up"
+                self.PLAYER_NAME.player_frame = 1
 
-        elif pygame.key.get_pressed()[pygame.K_DOWN]:
-            from_player_x = self.PLAYER_NAME.player_x
-            from_player_y = self.PLAYER_NAME.player_y
-            self.PLAYER_NAME.player_y += 1
-            self.PLAYER_NAME.player_direction = "down"
-            self.PLAYER_NAME.player_frame = 1
+            elif pygame.key.get_pressed()[pygame.K_DOWN]:
+                from_player_x = self.PLAYER_NAME.player_x
+                from_player_y = self.PLAYER_NAME.player_y
+                self.PLAYER_NAME.player_y += 1
+                self.PLAYER_NAME.player_direction = "down"
+                self.PLAYER_NAME.player_frame = 1
+
         # If the player is standing somewhere they shouldn't, move them back.
         # Keep the 2 comments below - you'll need them later
 
@@ -246,10 +248,10 @@ class Maps:
                                 (self.top_left_x + (x * 30),
                                  self.top_left_y + (y * 30) - image_to_draw.get_height()))
 
-            # if self.PLAYER_NAME.player_offset_y == y:
-            img = self.PLAYER_NAME.PLAYER[self.PLAYER_NAME.player_direction][
-                self.PLAYER_NAME.player_frame]
-            screen.blit(img, (self.top_left_x + (self.PLAYER_NAME.player_x * 30) +
-                              (self.PLAYER_NAME.player_offset_x * 30), self.top_left_y +
-                              (self.PLAYER_NAME.player_y * 30) + (self.PLAYER_NAME.player_offset_y * 30)
-                              - img.get_height()))
+            if self.PLAYER_NAME.player_y == y:
+                image_to_draw = self.PLAYER_NAME.PLAYER[self.PLAYER_NAME.player_direction][
+                    self.PLAYER_NAME.player_frame]
+                screen.blit(image_to_draw, (self.top_left_x + (self.PLAYER_NAME.player_x * 30) +
+                                            (self.PLAYER_NAME.player_offset_x * 30), self.top_left_y +
+                                            (self.PLAYER_NAME.player_y * 30) + (self.PLAYER_NAME.player_offset_y * 30)
+                                            - image_to_draw.get_height()))
