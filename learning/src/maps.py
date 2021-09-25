@@ -1,14 +1,17 @@
 """
-* The mother map has 50 sub-maps
-* Each sub-map represents a room
-* The first 25 sub-maps are planet surface (space)
+* The space station has 50 maps
+* The first 25 maps represent the planet surface (Mars)
+* The other 25 maps are rooms
 * Every room has an exit
-* The player will be in room 31 every time he plays the game
+* The player will be in room 31 every time the game is run
 """
+import pygame
+import random
+import time
 
 import maps_list as ml
 import objects as obj
-import random
+import scenery as sc
 
 from images import Images
 from player import Player
@@ -35,6 +38,8 @@ class Maps:
         self.FRIEND2_NAME = Player("Leo")
 
         self.outdoor_rooms = range(1, 26)
+        self.TILE_SIZE = 30
+        self.game_over = False
 
         # Where the player is
         self.current_room = 31
@@ -57,6 +62,13 @@ class Maps:
         # All the game images (objects)
         self.objects = obj.objects(self.PLAYER_NAME, self.FRIEND1_NAME, self.FRIEND2_NAME,
                                    self.LANDER_SECTOR, self.LANDER_X, self.LANDER_Y)
+
+        # All the game sceneries
+        self.scenery = sc.scenery()
+
+        self.items_player_may_carry = list(range(53, 82))
+        # Numbers below are for floor, pressure pad, soil, toxic floor.
+        self.items_player_may_stand_on = self.items_player_may_carry + [0, 39, 2, 48]
 
     def get_floor_type(self):
         if self.current_room in self.outdoor_rooms:
@@ -125,12 +137,119 @@ class Maps:
                 self.room_map[self.room_height - 1][middle_column + 1] = self.floor_type
                 self.room_map[self.room_height - 1][middle_column - 1] = self.floor_type
 
+        self.add_scenery()
+        self.load_scenery()
+
+    def add_scenery(self):
+        """This method adds the perimeter fence for the planet surface """
+        for room in range(1, 26):  # Add random scenery in planet locations.
+            if room != 13:  # Skip room 13.
+                scenery_item = random.choice([16, 28, 29, 30])
+                self.scenery[room] = [[scenery_item, random.randint(2, 10),
+                                       random.randint(2, 10)]]
+        # Use loops to add fences to the planet surface rooms.
+        for room_coordinate in range(0, 13):
+            for room_number in [1, 2, 3, 4, 5]:  # Add top fence
+                self.scenery[room_number] += [[31, 0, room_coordinate]]
+            for room_number in [1, 6, 11, 16, 21]:  # Add left fence
+                self.scenery[room_number] += [[31, room_coordinate, 0]]
+            for room_number in [5, 10, 15, 20, 25]:  # Add right fence
+                self.scenery[room_number] += [[31, room_coordinate, 12]]
+
+        del self.scenery[21][-1]  # Delete last fence panel in Room 21
+        del self.scenery[25][-1]  # Delete last fence panel in Room 25
+
+    def load_scenery(self):
+        """This method draws the scenery data
+        in the space station
+        """
+        if self.current_room in self.scenery:
+            for this_scenery in self.scenery[self.current_room]:
+                scenery_number = this_scenery[0]
+                scenery_y = this_scenery[1]
+                scenery_x = this_scenery[2]
+                self.room_map[scenery_y][scenery_x] = scenery_number
+
+                image_here = self.objects[scenery_number][0]
+                image_width = image_here.get_width()
+                image_width_in_tiles = int(image_width / self.TILE_SIZE)
+                for tile_number in range(1, image_width_in_tiles):
+                    self.room_map[scenery_y][scenery_x + tile_number] = 255
+
+    def player_movement(self):
+        if self.game_over:
+            return
+        if self.PLAYER_NAME.player_frame > 0:
+            self.PLAYER_NAME.player_frame += 1
+        time.sleep(0.05)
+        if self.PLAYER_NAME.player_frame == 5:
+            self.PLAYER_NAME.player_frame = 0
+            self.PLAYER_NAME.player_offset_x = 0
+            self.PLAYER_NAME.player_offset_y = 0
+        # save player's current position
+        old_player_x = self.PLAYER_NAME.player_x
+        old_player_y = self.PLAYER_NAME.player_y
+
+        # move if key is pressed
+        if self.PLAYER_NAME.player_frame == 0:
+            if pygame.key.get_pressed()[pygame.K_RIGHT]:
+                from_player_x = self.PLAYER_NAME.player_x
+                from_player_y = self.PLAYER_NAME.player_y
+                self.PLAYER_NAME.player_x += 1
+                self.PLAYER_NAME.player_direction = "right"
+                self.PLAYER_NAME.player_frame = 1
+
+        elif pygame.key.get_pressed()[pygame.K_LEFT]:  # elif stops player making diagonal movements
+            from_player_x = self.PLAYER_NAME.player_x
+            from_player_y = self.PLAYER_NAME.player_y
+            self.PLAYER_NAME.player_x -= 1
+            self.PLAYER_NAME.player_direction = "left"
+            self.PLAYER_NAME.player_frame = 1
+
+        elif pygame.key.get_pressed()[pygame.K_UP]:
+            from_player_x = self.PLAYER_NAME.player_x
+            from_player_y = self.PLAYER_NAME.player_y
+            self.PLAYER_NAME.player_y -= 1
+            self.PLAYER_NAME.player_direction = "up"
+            self.PLAYER_NAME.player_frame = 1
+
+        elif pygame.key.get_pressed()[pygame.K_DOWN]:
+            from_player_x = self.PLAYER_NAME.player_x
+            from_player_y = self.PLAYER_NAME.player_y
+            self.PLAYER_NAME.player_y += 1
+            self.PLAYER_NAME.player_direction = "down"
+            self.PLAYER_NAME.player_frame = 1
+        # If the player is standing somewhere they shouldn't, move them back.
+        # Keep the 2 comments below - you'll need them later
+
+        if self.room_map[self.PLAYER_NAME.player_y][self.PLAYER_NAME.player_x] not in self.items_player_may_stand_on:
+            # or hazard_map[player_y][player_x] != 0:
+            self.PLAYER_NAME.player_x = old_player_x
+            self.PLAYER_NAME.player_y = old_player_y
+            self.PLAYER_NAME.player_frame = 0
+
+        if self.PLAYER_NAME.player_direction == "right" and self.PLAYER_NAME.player_frame > 0:
+            self.PLAYER_NAME.player_offset_x = -1 + (0.25 * self.PLAYER_NAME.player_frame)
+        if self.PLAYER_NAME.player_direction == "left" and self.PLAYER_NAME.player_frame > 0:
+            self.PLAYER_NAME.player_offset_x = 1 - (0.25 * self.PLAYER_NAME.player_frame)
+        if self.PLAYER_NAME.player_direction == "up" and self.PLAYER_NAME.player_frame > 0:
+            self.PLAYER_NAME.player_offset_y = 1 - (0.25 * self.PLAYER_NAME.player_frame)
+        if self.PLAYER_NAME.player_direction == "down" and self.PLAYER_NAME.player_frame > 0:
+            self.PLAYER_NAME.player_offset_y = -1 + (0.25 * self.PLAYER_NAME.player_frame)
+
     def draw(self, screen):
-        self.generate_map()
-        demo = [self.images.floor, self.images.pillar, self.images.soil]
         for y in range(self.room_height):
             for x in range(self.room_width):
-                image_to_draw = demo[self.room_map[y][x]]
-                screen.blit(image_to_draw,
-                            (self.top_left_x + (x * 30),
-                             self.top_left_y + (y * 30) - image_to_draw.get_height()))
+                if self.room_map[y][x] != 255:
+                    image_to_draw = self.objects[self.room_map[y][x]][0]
+                    screen.blit(image_to_draw,
+                                (self.top_left_x + (x * 30),
+                                 self.top_left_y + (y * 30) - image_to_draw.get_height()))
+
+            # if self.PLAYER_NAME.player_offset_y == y:
+            img = self.PLAYER_NAME.PLAYER[self.PLAYER_NAME.player_direction][
+                self.PLAYER_NAME.player_frame]
+            screen.blit(img, (self.top_left_x + (self.PLAYER_NAME.player_x * 30) +
+                              (self.PLAYER_NAME.player_offset_x * 30), self.top_left_y +
+                              (self.PLAYER_NAME.player_y * 30) + (self.PLAYER_NAME.player_offset_y * 30)
+                              - img.get_height()))

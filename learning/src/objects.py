@@ -40,11 +40,11 @@ for astronauts in functioning spacesuits."],
         21: [images.door, images.door_shadow, "The airlock door. \
 For safety reasons, it requires two person operation."],
         22: [images.door, images.door_shadow, "A locked door. It needs "
-             + PLAYER_NAME + "'s access card"],
+             + PLAYER_NAME.name + "'s access card"],
         23: [images.door, images.door_shadow, "A locked door. It needs "
-             + FRIEND1_NAME + "'s access card"],
+             + FRIEND1_NAME.name + "'s access card"],
         24: [images.door, images.door_shadow, "A locked door. It needs "
-             + FRIEND2_NAME + "'s access card"],
+             + FRIEND2_NAME.name + "'s access card"],
         25: [images.door, images.door_shadow,
              "A locked door. It is opened from Main Mission Control"],
         26: [images.door, images.door_shadow,
@@ -98,7 +98,7 @@ For safety reasons, it requires two person operation."],
         54: [images.bubble_gum, None,
              "A piece of sticky bubble gum. Spaceberry flavour.", "bubble gum"],
         55: [images.yoyo, None, "A toy made of fine, strong string and plastic. \
-Used for antigrav experiments.", PLAYER_NAME + "'s yoyo"],
+Used for antigrav experiments.", PLAYER_NAME.name + "'s yoyo"],
         56: [images.thread, None,
              "A piece of fine, strong string", "a piece of string"],
         57: [images.needle, None,
@@ -145,9 +145,9 @@ anything. Can you sharpen them?", "blunt scissors"],
              "A small coin for the station's vending systems",
              "a station credit"],
         79: [images.access_card, None,
-             "This access card belongs to " + PLAYER_NAME, "an access card"],
+             "This access card belongs to " + PLAYER_NAME.name, "an access card"],
         80: [images.access_card, None,
-             "This access card belongs to " + FRIEND1_NAME, "an access card"],
+             "This access card belongs to " + FRIEND1_NAME.name, "an access card"],
         81: [images.access_card, None,
-             "This access card belongs to " + FRIEND2_NAME, "an access card"]
+             "This access card belongs to " + FRIEND2_NAME.name, "an access card"]
     }

@@ -23,9 +23,11 @@ class MainGame:
         pygame.display.set_caption(str(self.clock.get_fps()))
 
     def run(self):
+        self.maps.generate_map()
         while True:
             self.screen.fill(self.black)
             [sys.exit() for event in pygame.event.get() if event.type == pygame.QUIT]
+            self.maps.player_movement()
             self.maps.draw(self.screen)
             pygame.display.update()
 
@@ -33,3 +35,4 @@ class MainGame:
 if __name__ == "__main__":
     game = MainGame()
     game.run()
+
