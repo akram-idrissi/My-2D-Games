@@ -26,13 +26,12 @@ class MainGame:
         self.maps.generate_map()
         while True:
             self.screen.fill(self.black)
-            [sys.exit() for event in pygame.event.get() if event.type == pygame.QUIT]
-            self.maps.player_movement()
-            self.maps.draw(self.screen)
+            [sys.exit() for event in pygame.event.get() if event.type == pygame.QUIT or
+             pygame.key.get_pressed()[pygame.K_ESCAPE]]
+            self.maps.update_screen(self.screen)
             pygame.display.update()
 
 
 if __name__ == "__main__":
     game = MainGame()
     game.run()
-

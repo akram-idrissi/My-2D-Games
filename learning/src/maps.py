@@ -221,6 +221,43 @@ class Maps:
                 self.PLAYER_NAME.player_direction = "down"
                 self.PLAYER_NAME.player_frame = 1
 
+        # check for exiting the room
+        if self.PLAYER_NAME.player_x == self.room_width:  # through door on RIGHT
+            self.current_room += 1
+            self.generate_map()
+            self.PLAYER_NAME.player_x = 0  # enter at left
+            self.PLAYER_NAME.player_y = int(self.room_height / 2)  # enter at door
+            self.PLAYER_NAME.player_frame = 0
+            # start_room()
+            return
+
+        if self.PLAYER_NAME.player_x == -1:  # through door on LEFT
+            self.current_room -= 1
+            self.generate_map()
+            self.PLAYER_NAME.player_x = self.room_width - 1  # enter at right
+            self.PLAYER_NAME.player_y = int(self.room_height / 2)  # enter at door
+            self.PLAYER_NAME.player_frame = 0
+            # start_room()
+            return
+
+        if self.PLAYER_NAME.player_y == self.room_height:  # through door at BOTTOM
+            self.current_room += self.map_width
+            self.generate_map()
+            self.PLAYER_NAME.player_y = 0  # enter at top
+            self.PLAYER_NAME.player_x = int(self.room_width / 2)  # enter at door
+            self.PLAYER_NAME.player_frame = 0
+            # start_room()
+            return
+
+        if self.PLAYER_NAME.player_y == -1:  # through door at TOP
+            self.current_room -= self.map_width
+            self.generate_map()
+            self.PLAYER_NAME.player_y = self.room_height - 1  # enter at bottom
+            self.PLAYER_NAME.player_x = int(self.room_width / 2)  # enter at door
+            self.PLAYER_NAME.player_frame = 0
+            # start_room()
+            return
+
         # If the player is standing somewhere they shouldn't, move them back.
         # Keep the 2 comments below - you'll need them later
 
@@ -255,3 +292,7 @@ class Maps:
                                             (self.PLAYER_NAME.player_offset_x * 30), self.top_left_y +
                                             (self.PLAYER_NAME.player_y * 30) + (self.PLAYER_NAME.player_offset_y * 30)
                                             - image_to_draw.get_height()))
+                
+    def update_screen(self, screen):
+        self.player_movement()
+        self.draw(screen)
