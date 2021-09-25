@@ -42,6 +42,11 @@ class GameMap:
         self.game_rooms = self.rooms()
         self.objects = self.game_images()
         self.scenery = self.scenery()
+        self.props = self.props()
+
+        self.in_my_pockets = [55]
+        self.selected_item = 0  # the first item
+        self.item_carrying = self.in_my_pockets[self.selected_item]
 
         self.items_player_may_carry = list(range(53, 82))
         # Numbers below are for floor, pressure pad, soil, toxic floor.
@@ -127,6 +132,19 @@ class GameMap:
         room_pixel_height = self.room_height * self.tile_size
         top_left_x = center_x - 0.5 * room_pixel_width
         top_left_y = (center_y - 0.5 * room_pixel_height) + 110
+
+        for prop_number, prop_info in self.props.items():
+            prop_room = prop_info[0]
+            prop_y = prop_info[1]
+            prop_x = prop_info[2]
+            if (prop_room == self.current_room and
+                    self.room_map[prop_y][prop_x] in [0, 39, 2]):
+                self.room_map[prop_y][prop_x] = prop_number
+                image_here = self.objects[prop_number][0]
+                image_width = image_here.get_width()
+                image_width_in_tiles = int(image_width / self.tile_size)
+                for tile_number in range(1, image_width_in_tiles):
+                    self.room_map[prop_y][prop_x + tile_number] = 255
 
     def rooms(self):
 
@@ -420,6 +438,8 @@ class GameMap:
                 self.player.player_y += 1
                 self.player.player_direction = "down"
                 self.player.player_frame = 1
+            elif pygame.key.get_pressed()[pygame.K_g]:
+                self.pick_up_object()
 
         if self.player.player_x == self.room_width:  # through door on RIGHT
             # clock.unschedule(hazard_move)
@@ -579,3 +599,51 @@ class GameMap:
     #     screen.draw.filled_rect(box, st.black)
     #     screen.draw.text(text_to_show,
     #                      (20, text_lines[line_number]), color=st.green)
+
+    def props(self):
+        props = {
+            20: [31, 0, 4], 21: [26, 0, 1], 22: [41, 0, 2], 23: [39, 0, 5],
+            24: [45, 0, 2],
+            25: [32, 0, 2], 26: [27, 12, 5],  # two sides of same door
+            40: [0, 8, 6], 53: [45, 1, 5], 54: [0, 0, 0], 55: [0, 0, 0],
+            56: [0, 0, 0], 57: [35, 4, 6], 58: [0, 0, 0], 59: [31, 1, 7],
+            60: [0, 0, 0], 61: [36, 1, 1], 62: [36, 1, 6], 63: [0, 0, 0],
+            64: [27, 8, 3], 65: [50, 1, 7], 66: [39, 5, 6], 67: [46, 1, 1],
+            68: [0, 0, 0], 69: [30, 3, 3], 70: [47, 1, 3],
+            71: [0, self.landed_y, self.landed_x], 72: [0, 0, 0], 73: [27, 4, 6],
+            74: [28, 1, 11], 75: [0, 0, 0], 76: [41, 3, 5], 77: [0, 0, 0],
+            78: [35, 9, 11], 79: [26, 3, 2], 80: [41, 7, 5], 81: [29, 1, 1]
+        }
+
+        return props
+
+    def find_object_start_x(self):
+        checker_x = self.player.player_x
+
+        while self.room_map[self.player.player_y][checker_x] == 255:
+            checker_x -= 1
+        return checker_x
+
+    def get_item_under_player(self):
+        item_x = self.find_object_start_x()
+
+        item_player_is_on = self.room_map[self.player.player_y][item_x]
+        return item_player_is_on
+
+    def pick_up_object(self):
+
+        item_player_is_on = self.get_item_under_player()
+        if item_player_is_on in self.items_player_may_carry:
+            self.room_map[self.player.player_y][self.player.player_x] = self.get_floor_type()
+        self.add_object(item_player_is_on)
+        time.sleep(0.5)
+
+    def add_object(self, item):  # Adds item to inventory.
+        self.in_my_pockets.append(item)
+        item_carrying = item
+        selected_item = len(self.in_my_pockets) - 1
+        self.display_inventory()
+        self.props[item][0] = 0  # Carried objects go into room 0 (off the map).
+
+    def display_inventory(self):
+        print(self.in_my_pockets)
