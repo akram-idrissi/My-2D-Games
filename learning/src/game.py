@@ -8,7 +8,7 @@ class MainGame:
     def __init__(self):
         pygame.init()
         self.width = 800
-        self.height = 600
+        self.height = 800
 
         self.maps = Maps()
 
@@ -22,12 +22,19 @@ class MainGame:
         self.clock.tick(self.fps)
         pygame.display.set_caption(str(self.clock.get_fps()))
 
-    def run(self):
+    def update(self):
+        self.maps.generate_map()
         while True:
             self.screen.fill(self.black)
-            [sys.exit() for event in pygame.event.get() if event.type == pygame.QUIT]
-            self.maps.draw(self.screen)
+            
+            [sys.exit() for event in pygame.event.get() if event.type == pygame.QUIT or
+                pygame.key.get_pressed()[pygame.K_ESCAPE]]
+
+            self.maps.update_screen(self.screen)
             pygame.display.update()
+
+    def run(self):
+        self.update()
 
 
 if __name__ == "__main__":
