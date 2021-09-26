@@ -3,6 +3,61 @@ from images import Images
 images = Images()
 
 
+def props(LANDER_Y, LANDER_X):
+    prop = {
+        20: [31, 0, 4], 21: [26, 0, 1], 22: [41, 0, 2], 23: [39, 0, 5],
+        24: [45, 0, 2],
+        25: [32, 0, 2], 26: [27, 12, 5],  # two sides of same door
+        40: [0, 8, 6], 53: [45, 1, 5], 54: [0, 0, 0], 55: [0, 0, 0],
+        56: [0, 0, 0], 57: [35, 4, 6], 58: [0, 0, 0], 59: [31, 1, 7],
+        60: [0, 0, 0], 61: [36, 1, 1], 62: [36, 1, 6], 63: [0, 0, 0],
+        64: [27, 8, 3], 65: [50, 1, 7], 66: [39, 5, 6], 67: [46, 1, 1],
+        68: [0, 0, 0], 69: [30, 3, 3], 70: [47, 1, 3],
+        71: [0, LANDER_Y, LANDER_X], 72: [0, 0, 0], 73: [27, 4, 6],
+        74: [28, 1, 11], 75: [0, 0, 0], 76: [41, 3, 5], 77: [0, 0, 0],
+        78: [35, 9, 11], 79: [26, 3, 2], 80: [41, 7, 5], 81: [29, 1, 1]
+    }
+    return prop
+
+
+def game_map(PLAYER_NAME, FRIEND1_NAME, FRIEND2_NAME):
+    """ Maps and their properties """
+    maps_list = [["Room 0 - where unused objects are kept", 0, 0, False, False]]
+
+    for map_list in range(1, 26):
+        maps_list.append(["The dusty planet surface", 13, 13, True, True])
+
+    maps_list += [
+        # ["Room name", height, width, Top exit?, Right exit?]
+        ["The airlock", 13, 5, True, False],  # room 26
+        ["The engineering lab", 13, 13, False, False],  # room 27
+        ["Poodle Mission Control", 9, 13, False, True],  # room 28
+        ["The viewing gallery", 9, 15, False, False],  # room 29
+        ["The crew's bathroom", 5, 5, False, False],  # room 30
+        ["The airlock entry bay", 7, 11, True, True],  # room 31
+        ["Left elbow room", 9, 7, True, False],  # room 32
+        ["Right elbow room", 7, 13, True, True],  # room 33
+        ["The science lab", 13, 13, False, True],  # room 34
+        ["The greenhouse", 13, 13, True, False],  # room 35
+        [PLAYER_NAME.name + "'s sleeping quarters", 9, 11, False, False],  # room 36
+        ["West corridor", 15, 5, True, True],  # room 37
+        ["The briefing room", 7, 13, False, True],  # room 38
+        ["The crew's community room", 11, 13, True, False],  # room 39
+        ["Main Mission Control", 14, 14, False, False],  # room 40
+        ["The sick bay", 12, 7, True, False],  # room 41
+        ["West corridor", 9, 7, True, False],  # room 42
+        ["Utilities control room", 9, 9, False, True],  # room 43
+        ["Systems engineering bay", 9, 11, False, False],  # room 44
+        ["Security portal to Mission Control", 7, 7, True, False],  # room 45
+        [FRIEND1_NAME.name + "'s sleeping quarters", 9, 11, True, True],  # room 46
+        [FRIEND2_NAME.name + "'s sleeping quarters", 9, 11, True, True],  # room 47
+        ["The pipeworks", 13, 11, True, False],  # room 48
+        ["The chief scientist's office", 9, 7, True, True],  # room 49
+        ["The robot workshop", 9, 11, True, False]  # room 50
+    ]
+    return maps_list
+
+
 def objects(PLAYER_NAME, FRIEND1_NAME, FRIEND2_NAME,
             LANDER_SECTOR, LANDER_X, LANDER_Y):
     return {
@@ -151,3 +206,48 @@ anything. Can you sharpen them?", "blunt scissors"],
         81: [images.access_card, None,
              "This access card belongs to " + FRIEND2_NAME.name, "an access card"]
     }
+
+
+def scenery():
+    # Scenery describes objects that cannot move between rooms.
+    # room number: [[object number, y position, x position]...]
+    s = {
+        26: [[39, 8, 2]],
+        27: [[33, 5, 5], [33, 1, 1], [33, 1, 8], [47, 5, 2],
+             [47, 3, 10], [47, 9, 8], [42, 1, 6]],
+        28: [[27, 0, 3], [41, 4, 3], [41, 4, 7]],
+        29: [[7, 2, 6], [6, 2, 8], [12, 1, 13], [44, 0, 1],
+             [36, 4, 10], [10, 1, 1], [19, 4, 2], [17, 4, 4]],
+        30: [[34, 1, 1], [35, 1, 3]],
+        31: [[11, 1, 1], [19, 1, 8], [46, 1, 3]],
+        32: [[48, 2, 2], [48, 2, 3], [48, 2, 4], [48, 3, 2], [48, 3, 3],
+             [48, 3, 4], [48, 4, 2], [48, 4, 3], [48, 4, 4]],
+        33: [[13, 1, 1], [13, 1, 3], [13, 1, 8], [13, 1, 10], [48, 2, 1],
+             [48, 2, 7], [48, 3, 6], [48, 3, 3]],
+        34: [[37, 2, 2], [32, 6, 7], [37, 10, 4], [28, 5, 3]],
+        35: [[16, 2, 9], [16, 2, 2], [16, 3, 3], [16, 3, 8], [16, 8, 9], [16, 8, 2], [16, 1, 8],
+             [16, 1, 3], [12, 8, 6], [12, 9, 4], [12, 9, 8],
+             [15, 4, 6], [12, 7, 1], [12, 7, 11]],
+        36: [[4, 3, 1], [9, 1, 7], [8, 1, 8], [8, 1, 9],
+             [5, 5, 4], [6, 5, 7], [10, 1, 1], [12, 1, 2]],
+        37: [[48, 3, 1], [48, 3, 2], [48, 7, 1], [48, 5, 2], [48, 5, 3],
+             [48, 7, 2], [48, 9, 2], [48, 9, 3], [48, 11, 1], [48, 11, 2]],
+        38: [[43, 0, 2], [6, 2, 2], [6, 3, 5], [6, 4, 7], [6, 2, 9], [45, 1, 10]],
+        39: [[38, 1, 1], [7, 3, 4], [7, 6, 4], [5, 3, 6], [5, 6, 6],
+             [6, 3, 9], [6, 6, 9], [45, 1, 11], [12, 1, 8], [12, 1, 4]],
+        40: [[41, 5, 3], [41, 5, 7], [41, 9, 3], [41, 9, 7],
+             [13, 1, 1], [13, 1, 3], [42, 1, 12]],
+        41: [[4, 3, 1], [10, 3, 5], [4, 5, 1], [10, 5, 5], [4, 7, 1],
+             [10, 7, 5], [12, 1, 1], [12, 1, 5]],
+        44: [[46, 4, 3], [46, 4, 5], [18, 1, 1], [19, 1, 3],
+             [19, 1, 5], [52, 4, 7], [14, 1, 8]],
+        45: [[48, 2, 1], [48, 2, 2], [48, 3, 3], [48, 3, 4], [48, 1, 4], [48, 1, 1]],
+        46: [[10, 1, 1], [4, 1, 2], [8, 1, 7], [9, 1, 8], [8, 1, 9], [5, 4, 3], [7, 3, 2]],
+        47: [[9, 1, 1], [9, 1, 2], [10, 1, 3], [12, 1, 7], [5, 4, 4], [6, 4, 7], [4, 1, 8]],
+        48: [[17, 4, 1], [17, 4, 2], [17, 4, 3], [17, 4, 4], [17, 4, 5], [17, 4, 6], [17, 4, 7],
+             [17, 8, 1], [17, 8, 2], [17, 8, 3], [17, 8, 4],
+             [17, 8, 5], [17, 8, 6], [17, 8, 7], [14, 1, 1]],
+        49: [[14, 2, 2], [14, 2, 4], [7, 5, 1], [5, 5, 3], [48, 3, 3], [48, 3, 4]],
+        50: [[45, 4, 8], [11, 1, 1], [13, 1, 8], [33, 2, 1], [46, 4, 6]]
+    }
+    return s
