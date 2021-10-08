@@ -5,9 +5,10 @@ import sys
 from random import randrange
 
 pygame.init()
-RES = 800
-HW, HH = RES // 2, RES // 2
-SIZE = 30
+WIDTH, HEIGHT = 1200, 600
+RES = WIDTH, HEIGHT
+HW, HH = WIDTH // 2, HEIGHT // 2
+SIZE = 20
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -15,38 +16,22 @@ RED = (150, 0, 0)
 LIGHT_YELLOW = (255, 255, 204)
 GREEN = (0, 200, 0)
 
-screen = pygame.display.set_mode((RES, RES))
-x, y = randrange(SIZE, RES - SIZE, SIZE), randrange(SIZE, RES - SIZE, SIZE)
-apple = (randrange(SIZE, RES - SIZE, SIZE), randrange(SIZE, RES - SIZE, SIZE))
+screen = pygame.display.set_mode(RES)
+x, y = randrange(SIZE, WIDTH - SIZE, SIZE), randrange(SIZE, HEIGHT - SIZE, SIZE)
+apple = (randrange(SIZE, WIDTH - SIZE, SIZE), randrange(SIZE, HEIGHT - SIZE, SIZE))
 
 snake = [(x, y)]
 length = 1
 score = 0
-fps = 20
+fps = 10
 dx, dy = 0, 0
 
 # score
 font_score = pygame.font.SysFont("", 40)
-score_text = f"Your score : {score}"
-text = font_score.render(score_text, True, LIGHT_YELLOW)
-text_rect = text.get_rect()
-text_rect.x = 20
-text_rect.y = 20
-
-# game over
 font_end = pygame.font.SysFont("", 40)
-game_over_text = f"""You lose
-Your score {score}
-Tape c to play again or q to exit
-"""
-game_over = font_end.render(game_over_text, True, WHITE)
-game_over_rect = game_over.get_rect()
-game_over_rect.x = HW - 100
-game_over_rect.y = HH
+font_fps = pygame.font.SysFont("", 1)
 
 clock = pygame.time.Clock()
-
-game = False
 
 
 def close_window():
@@ -60,22 +45,44 @@ def close_window():
                 sys.exit()
 
 
+def restart():
+    global x, y, length, apple, score, fps
+    x, y = randrange(SIZE, WIDTH - SIZE, SIZE), randrange(SIZE, HEIGHT - SIZE, SIZE)
+    apple = (randrange(SIZE, WIDTH - SIZE, SIZE), randrange(SIZE, HEIGHT - SIZE, SIZE))
+    score = 0
+    length = 1
+    fps = 10
+
+
 while True:
     screen.fill(BLACK)
     close_window()
 
-    screen.blit(text, text_rect)
+    text_fps = font_score.render(f"fps : {fps}", True, LIGHT_YELLOW)
+    screen.blit(text_fps, (0, 0))
+    text = font_score.render(f"Your score : {score}", True, LIGHT_YELLOW)
+    screen.blit(text, (0, 40))
 
-    [pygame.draw.rect(screen, GREEN, (i, j, SIZE, SIZE)) for i, j in snake]
+    [pygame.draw.rect(screen, GREEN, (i, j, SIZE - 2, SIZE - 2)) for i, j in snake]
     pygame.draw.rect(screen, RED, (*apple, SIZE, SIZE))
 
     if snake[-1] == apple:
-        apple = (randrange(SIZE, RES - SIZE, SIZE), randrange(SIZE, RES - SIZE, SIZE))
+        apple = (randrange(SIZE, WIDTH - SIZE, SIZE), randrange(SIZE, HEIGHT - SIZE, SIZE))
         length += 1
+        score += 1
         fps += 1
 
-    if x < 0 or x > RES - SIZE or y < 0 or y > RES - SIZE or len(snake) != len(set(snake)):
-        screen.blit(game_over, game_over_rect)
+    if x <= 0 or x >= WIDTH - SIZE or y <= 0 or y >= HEIGHT - SIZE or len(snake) != len(set(snake)):
+        while True:
+            game_over = font_end.render("Game Over, click r to play again  or escape to quit", True,
+                                        pygame.Color("orange"))
+            screen.blit(game_over, (250, HH))
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_r]:
+                restart()
+                break
+            close_window()
+            pygame.display.update()
 
     x += dx * SIZE
     y += dy * SIZE
