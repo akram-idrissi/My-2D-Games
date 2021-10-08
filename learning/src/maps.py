@@ -9,9 +9,7 @@ import pygame
 import random
 import time
 
-import maps_list as ml
-import objects as obj
-import scenery as sc
+import general as gn
 
 from images import Images
 from player import Player
@@ -70,18 +68,24 @@ class Maps:
         self.LANDER_Y = random.randint(2, 11)
 
         # All the game maps
-        self.maps = ml.game_map(self.PLAYER_NAME, self.FRIEND1_NAME, self.FRIEND2_NAME)
+        self.maps = gn.game_map(self.PLAYER_NAME, self.FRIEND1_NAME, self.FRIEND2_NAME)
 
         # All the game images (objects)
-        self.objects = obj.objects(self.PLAYER_NAME, self.FRIEND1_NAME, self.FRIEND2_NAME,
-                                   self.LANDER_SECTOR, self.LANDER_X, self.LANDER_Y)
+        self.objects = gn.objects(self.PLAYER_NAME, self.FRIEND1_NAME, self.FRIEND2_NAME,
+                                  self.LANDER_SECTOR, self.LANDER_X, self.LANDER_Y)
 
         # All the game sceneries
-        self.scenery = sc.scenery()
+        self.scenery = gn.scenery()
+
+        self.props = gn.props(self.LANDER_Y, self.LANDER_X)
 
         self.items_player_may_carry = list(range(53, 82))
         # Numbers below are for floor, pressure pad, soil, toxic floor.
         self.items_player_may_stand_on = self.items_player_may_carry + [0, 39, 2, 48]
+
+        self.in_my_pockets = [55]
+        self.selected_item = 0  # the first item
+        self.item_carrying = self.in_my_pockets[self.selected_item]
 
     def get_floor_type(self):
         if self.current_room in self.outdoor_rooms:
@@ -196,6 +200,73 @@ class Maps:
         self.top_left_x = center_x - 0.5 * room_pixel_width
         self.top_left_y = (center_y - 0.5 * room_pixel_height) + 110
 
+        for prop_number, prop_info in self.props.items():
+            prop_room = prop_info[0]
+            prop_y = prop_info[1]
+            prop_x = prop_info[2]
+            if (prop_room == self.current_room and
+                    self.room_map[prop_y][prop_x] in [0, 39, 2]):
+                self.room_map[prop_y][prop_x] = prop_number
+                image_here = self.objects[prop_number][0]
+                image_width = image_here.get_width()
+                image_width_in_tiles = int(image_width / self.TILE_SIZE)
+                for tile_number in range(1, image_width_in_tiles):
+                    self.room_map[prop_y][prop_x + tile_number] = 255
+
+    def find_object_start_x(self):
+        checker_x = self.PLAYER_NAME.player_x
+
+        while self.room_map[self.PLAYER_NAME.player_y][checker_x] == 255:
+            checker_x -= 1
+        return checker_x
+
+    def get_item_under_player(self):
+        item_x = self.find_object_start_x()
+
+        item_player_is_on = self.room_map[self.PLAYER_NAME.player_y][item_x]
+        return item_player_is_on
+
+    def pick_up_object(self, screen):
+        item_player_is_on = self.get_item_under_player()
+        if item_player_is_on in self.items_player_may_carry:
+            self.room_map[self.PLAYER_NAME.player_y][self.PLAYER_NAME.player_x] = self.get_floor_type()
+            self.add_object(item_player_is_on, screen)
+            self.show_text("Now carrying " + self.objects[item_player_is_on][3], 0, screen)
+            # sounds.pickup.play()
+            time.sleep(0.5)
+        else:
+            self.show_text("You can't carry that!", 0, screen)
+
+    def add_object(self, item, screen):  # Adds item to inventory.
+        self.in_my_pockets.append(item)
+        self.item_carrying = item
+        self.selected_item = len(self.in_my_pockets) - 1
+        self.display_inventory(screen)
+        self.props[item][0] = 0  # Carried objects go into room 0 (off the map).
+
+    def display_inventory(self, screen):
+        box = pygame.Rect(0, 45, 800, 105)
+        pygame.draw.rect(screen, self.BLACK, box)
+        if len(self.in_my_pockets) == 0:
+            return
+
+        start_display = (self.selected_item // 16) * 16
+        list_to_show = self.in_my_pockets[start_display: start_display + 16]
+        selected_marker = self.selected_item % 16
+
+        for item_counter in range(len(list_to_show)):
+            item_number = list_to_show[item_counter]
+            image = self.objects[item_number][0]
+            screen.blit(image, (25 + (46 * item_counter), 90))
+
+        box_left = (selected_marker * 46) - 3
+        box = pygame.Rect(22 + box_left, 85, 40, 40)
+        pygame.draw.rect(screen, self.WHITE, box)
+        item_highlighted = self.in_my_pockets[self.selected_item]
+        description = self.objects[item_highlighted][2]
+        text = self.font.render(description, False, self.WHITE)
+        screen.blit(text, (20, 130))
+
     def player_movement(self, screen):
         """This method handles the player movement"""
         if self.game_over:
@@ -241,6 +312,22 @@ class Maps:
                 self.PLAYER_NAME.player_y += 1
                 self.PLAYER_NAME.player_direction = "down"
                 self.PLAYER_NAME.player_frame = 1
+
+        if pygame.key.get_pressed()[pygame.K_g]:
+            self.pick_up_object(screen)
+
+        if pygame.key.get_pressed()[pygame.K_TAB] and len(self.in_my_pockets) > 0:
+            self.selected_item += 1
+            if self.selected_item > len(self.in_my_pockets) - 1:
+                self.selected_item = 0
+            item_carrying = self.in_my_pockets[self.selected_item]
+            self.display_inventory(screen)
+
+        if pygame.key.get_pressed()[pygame.K_d] and self.item_carrying:
+            self.drop_object(old_player_y, old_player_x, screen)
+
+        if pygame.key.get_pressed()[pygame.K_SPACE]:
+            self.examine_object(screen)
 
         # check for exiting the room
         if self.PLAYER_NAME.player_x == self.room_width:  # through door on RIGHT
@@ -413,6 +500,50 @@ class Maps:
         pygame.draw.rect(screen, self.BLACK, box)
         text = self.font.render(text_to_show, False, self.GREEN)
         screen.blit(text, (20, text_lines[line_number]))
+
+    def drop_object(self, old_y, old_x, screen):
+        if self.room_map[old_y][old_x] in [0, 2, 39]:  # places you can drop things
+            self.props[self.item_carrying][0] = self.current_room
+            self.props[self.item_carrying][1] = old_y
+            self.props[self.item_carrying][2] = old_x
+            self.room_map[old_y][old_x] = self.item_carrying
+            self.show_text("You have dropped " + self.objects[self.item_carrying][3], 0, screen)
+            # sounds.drop.play()
+            self.remove_object(self.item_carrying, screen)
+            time.sleep(0.5)
+        else:  # This only happens if there is already a prop here
+            self.show_text("You can't drop that there.", 0, screen)
+            time.sleep(0.5)
+
+    def remove_object(self, item, screen):  # Takes item out of inventory
+        self.in_my_pockets.remove(item)
+        selected_item = self.selected_item - 1
+        if selected_item < 0:
+            selected_item = 0
+        if len(self.in_my_pockets) == 0:  # If they're not carrying anything
+            item_carrying = False  # Set item_carrying to False
+        else:  # Otherwise set it to the new selected item
+            item_carrying = self.in_my_pockets[selected_item]
+        self.display_inventory(screen)
+
+    def examine_object(self, screen):
+        item_player_is_on = self.get_item_under_player()
+        left_tile_of_item = self.find_object_start_x()
+        if item_player_is_on in [0, 2]:  # don't describe the floor
+            return
+        description = "You see: " + self.objects[item_player_is_on][2]
+        for prop_number, details in self.props.items():
+            # props = object number: [room number, y, x]
+            if details[0] == self.current_room:  # if prop is in the room
+                # If prop is hidden (= at player's location but not on map)
+                if (details[1] == self.PLAYER_NAME.player_y
+                        and details[2] == left_tile_of_item
+                        and self.room_map[details[1]][details[2]] != prop_number):
+                    self.add_object(prop_number, screen)
+                    description = "You found " + self.objects[prop_number][3]
+                    # sounds.combine.play()
+        self.show_text(description, 0, screen)
+        time.sleep(0.5)
 
     def update_screen(self, screen):
         self.start_room(screen)
