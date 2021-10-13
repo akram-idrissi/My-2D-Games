@@ -1,104 +1,51 @@
 import pygame
-import pygame.font
-import sys
 
 from random import randrange
 
-pygame.init()
-WIDTH, HEIGHT = 1200, 600
-RES = WIDTH, HEIGHT
-HW, HH = WIDTH // 2, HEIGHT // 2
-SIZE = 20
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (150, 0, 0)
-LIGHT_YELLOW = (255, 255, 204)
-GREEN = (0, 200, 0)
+class Snake:
+    def __init__(self, screen, st):
+        self.length = 1
+        self.settings = st
+        self.screen = screen
 
-screen = pygame.display.set_mode(RES)
-x, y = randrange(SIZE, WIDTH - SIZE, SIZE), randrange(SIZE, HEIGHT - SIZE, SIZE)
-apple = (randrange(SIZE, WIDTH - SIZE, SIZE), randrange(SIZE, HEIGHT - SIZE, SIZE))
+        self.x = randrange(self.settings.SIZE, self.settings.WIDTH - self.settings.SIZE, self.settings.SIZE)
+        self.y = randrange(self.settings.SIZE, self.settings.HEIGHT - self.settings.SIZE, self.settings.SIZE)
 
-snake = [(x, y)]
-length = 1
-score = 0
-fps = 10
-dx, dy = 0, 0
+        self.crd = [(self.x, self.y)]
+        self.dx, self.dy = 0, 0
 
-# score
-font_score = pygame.font.SysFont("", 40)
-font_end = pygame.font.SysFont("", 40)
-font_fps = pygame.font.SysFont("", 1)
+    def increase(self):
+        self.x += self.dx * self.settings.SIZE
+        self.y += self.dy * self.settings.SIZE
 
-clock = pygame.time.Clock()
+        self.crd.append((self.x, self.y))
+        self.crd = self.crd[-self.length:]
 
+    def eat(self, apple):
+        if self.crd[-1] == apple.crd:
+            apple.crd = (randrange(self.settings.SIZE, self.settings.WIDTH - self.settings.SIZE, self.settings.SIZE),
+                         randrange(self.settings.SIZE, self.settings.HEIGHT - self.settings.SIZE, self.settings.SIZE))
+            self.length += 1
+            self.settings.score += 1
+            self.settings.fps += 1
 
-def close_window():
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                pygame.quit()
-                sys.exit()
+    def collisions(self):
+        if self.x < 0 or self.x > self.settings.WIDTH or self.y < 0 or self.y > self.settings.HEIGHT or \
+                len(self.crd) != len(set(self.crd)):
+            return True
 
+    def move(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_RIGHT]:
+            self.dx, self.dy = 1, 0
+        elif keys[pygame.K_LEFT]:
+            self.dx, self.dy = -1, 0
+        elif keys[pygame.K_UP]:
+            self.dx, self.dy = 0, -1
+        elif keys[pygame.K_DOWN]:
+            self.dx, self.dy = 0, 1
 
-def restart():
-    global x, y, length, apple, score, fps
-    x, y = randrange(SIZE, WIDTH - SIZE, SIZE), randrange(SIZE, HEIGHT - SIZE, SIZE)
-    apple = (randrange(SIZE, WIDTH - SIZE, SIZE), randrange(SIZE, HEIGHT - SIZE, SIZE))
-    score = 0
-    length = 1
-    fps = 10
-
-
-while True:
-    screen.fill(BLACK)
-    close_window()
-
-    text_fps = font_score.render(f"fps : {fps}", True, LIGHT_YELLOW)
-    screen.blit(text_fps, (0, 0))
-    text = font_score.render(f"Your score : {score}", True, LIGHT_YELLOW)
-    screen.blit(text, (0, 40))
-
-    [pygame.draw.rect(screen, GREEN, (i, j, SIZE - 2, SIZE - 2)) for i, j in snake]
-    pygame.draw.rect(screen, RED, (*apple, SIZE, SIZE))
-
-    if snake[-1] == apple:
-        apple = (randrange(SIZE, WIDTH - SIZE, SIZE), randrange(SIZE, HEIGHT - SIZE, SIZE))
-        length += 1
-        score += 1
-        fps += 1
-
-    if x <= 0 or x >= WIDTH - SIZE or y <= 0 or y >= HEIGHT - SIZE or len(snake) != len(set(snake)):
-        while True:
-            game_over = font_end.render("Game Over, click r to play again  or escape to quit", True,
-                                        pygame.Color("orange"))
-            screen.blit(game_over, (250, HH))
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_r]:
-                restart()
-                break
-            close_window()
-            pygame.display.update()
-
-    x += dx * SIZE
-    y += dy * SIZE
-    snake.append((x, y))
-
-    snake = snake[-length:]
-
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_RIGHT]:
-        dx, dy = 1, 0
-    elif keys[pygame.K_LEFT]:
-        dx, dy = -1, 0
-    elif keys[pygame.K_UP]:
-        dx, dy = 0, -1
-    elif keys[pygame.K_DOWN]:
-        dx, dy = 0, 1
-
-    pygame.display.update()
-    clock.tick(fps)
+    def draw(self):
+        [pygame.draw.rect(self.screen, self.settings.GREEN,
+                          (i, j, self.settings.SIZE - 2, self.settings.SIZE - 2)) for i, j in self.crd]
