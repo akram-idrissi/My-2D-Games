@@ -39,7 +39,7 @@ class Main:
 
         self.settings.score = 0
         self.snake.length = 1
-        self.settings.fps = 10
+        self.settings.fps = 60
 
     def blit_font(self, text, color, coordinates):
         message = pygame.font.SysFont("", 40)

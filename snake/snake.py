@@ -14,7 +14,7 @@ class Snake:
 
         self.crd = [(self.x, self.y)]
         self.dx, self.dy = 0, 0
-
+ 
     def increase(self):
         self.x += self.dx * self.settings.SIZE
         self.y += self.dy * self.settings.SIZE
@@ -48,4 +48,4 @@ class Snake:
 
     def draw(self):
         [pygame.draw.rect(self.screen, self.settings.GREEN,
-                          (i, j, self.settings.SIZE - 2, self.settings.SIZE - 2)) for i, j in self.crd]
+                          (i, j, self.settings.SIZE, self.settings.SIZE)) for i, j in self.crd]
